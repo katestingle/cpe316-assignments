@@ -17,6 +17,7 @@ void TIM2_Init(){
 	  NVIC->ISER[0] = (1<<(TIM2_IRQn & 0x1F)); // periph specific EN at NVIC level
 	  TIM2->CR1 &= ~(TIM_CR1_DIR); // count up
 	  TIM2->DIER |= TIM_DIER_CC1IE; // Capture/Compare 1 interrupt enable
+	  TIM2->DIER |= TIM_DIER_UIE; // Update interrupt enable
 	  TIM2->SR &= ~TIM_SR_CC1IF; // clear cc1 interrupt flag if set
 	  TIM2->SR &= ~TIM_SR_UIF; // clear update interrupt flag if set
 	  TIM2->PSC = 0; // PSC = 0 (max resolution)
@@ -54,7 +55,7 @@ void GPIO_TIM2_Init(){
 	// Configure MCO output on PA8
 	RCC->AHB2ENR |= (RCC_AHB2ENR_GPIOAEN);
 	GPIOA->MODER &= ~(GPIO_MODER_MODE5);
-	GPIOA->MODER |= (GPIO_MODER_MODE5_0);
+	GPIOA->MODER |= (GPIO_MODER_MODE5_0); // output mode
 	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT5); // Push-pull output
 	GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPD5); // no resistor
 	GPIOA->OSPEEDR |= (GPIO_OSPEEDR_OSPEED5); // high speed is enough
@@ -71,6 +72,18 @@ void TIM2_IRQHandler(void){
 		TIM2->SR &= ~TIM_SR_CC1IF; // Disable the CC1 Interrupt Flag
 		GPIOA->BRR = (1 << 5);   // Turn off PA5
 	}
+
+	// what it's supposed to be:
+//	void TIM2_IRQHandler(void)
+//	{
+//	  if(TIM2->SR & TIM_SR_CC1IF) {
+//	      GPIOA->BRR = GPIO_PIN_5;
+//	      TIM2->SR &= ~(TIM_SR_CC1IF);
+//	  } else {
+//	      GPIOA->BSRR = GPIO_PIN_5;
+//	      TIM2->SR &= ~(TIM_SR_UIF);
+//	  }
+//	}
 
 }
 
